@@ -1,0 +1,27 @@
+#ifndef FUNCIONES_H
+#define FUNCIONES_H
+
+#define ZONAS 5
+#define DIAS 30
+
+typedef struct {
+    char nombre[30];
+    float co2[DIAS];
+    float so2[DIAS];
+    float no2[DIAS];
+    float pm25[DIAS];
+    float temperatura;
+    float viento;
+    float humedad;
+} Zona;
+
+void inicializarZonas(Zona zonas[]);
+void generarDatosAleatorios(Zona zonas[]);
+void mostrarActual(Zona zonas[]);
+void promedioHistorico(Zona zonas[]);
+void prediccion(Zona zonas[]);
+void alertas(Zona zonas[]);
+void recomendaciones(Zona zonas[]);
+void generarReporte(Zona zonas[]);
+
+#endif
