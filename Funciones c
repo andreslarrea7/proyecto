@@ -1,0 +1,149 @@
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <time.h>
+#include "funciones.h"
+
+#define LIM_CO2 400
+#define LIM_SO2 20
+#define LIM_NO2 40
+#define LIM_PM25 25
+
+
+float aleatorio(float min, float max) {
+    return min + ((float)rand() / RAND_MAX) * (max - min);
+}
+
+void inicializarZonas(Zona zonas[]) {
+
+    char nombres[ZONAS][30] = {
+        "Parroquia Nono",
+        "Parroquia Pifo",
+        "Parroquia Yaruqui",
+        "Parroquia Cumbaya",
+        "Parroquia Tumbaco"
+    };
+
+    for (int i = 0; i < ZONAS; i++) {
+        strcpy(zonas[i].nombre, nombres[i]);
+        zonas[i].temperatura = aleatorio(15, 22);
+        zonas[i].viento = aleatorio(2, 7);
+        zonas[i].humedad = aleatorio(55, 80);
+    }
+}
+
+
+void generarDatosAleatorios(Zona zonas[]) {
+
+    srand(time(NULL));   
+
+    for (int i = 0; i < ZONAS; i++) {
+        for (int j = 0; j < DIAS; j++) {
+
+            zonas[i].co2[j] = aleatorio(350, 450);
+            zonas[i].so2[j] = aleatorio(2, 25);
+            zonas[i].no2[j] = aleatorio(5, 50);
+            zonas[i].pm25[j] = aleatorio(5, 35);
+        }
+    }
+}
+
+void mostrarActual(Zona zonas[]) {
+    for (int i = 0; i < ZONAS; i++) {
+        printf("\n%s", zonas[i].nombre);
+        printf("\nCO2: %.2f ppm", zonas[i].co2[DIAS - 1]);
+        printf("\nSO2: %.2f ug/m3", zonas[i].so2[DIAS - 1]);
+        printf("\nNO2: %.2f ug/m3", zonas[i].no2[DIAS - 1]);
+        printf("\nPM2.5: %.2f ug/m3\n", zonas[i].pm25[DIAS - 1]);
+    }
+}
+
+void promedioHistorico(Zona zonas[]) {
+    float pco2, pso2, pno2, ppm;
+
+    for (int i = 0; i < ZONAS; i++) {
+        pco2 = pso2 = pno2 = ppm = 0;
+
+        for (int j = 0; j < DIAS; j++) {
+            pco2 += zonas[i].co2[j];
+            pso2 += zonas[i].so2[j];
+            pno2 += zonas[i].no2[j];
+            ppm += zonas[i].pm25[j];
+        }
+
+        printf("\n%s", zonas[i].nombre);
+        printf("\nPromedio CO2: %.2f", pco2 / DIAS);
+        printf("\nPromedio SO2: %.2f", pso2 / DIAS);
+        printf("\nPromedio NO2: %.2f", pno2 / DIAS);
+        printf("\nPromedio PM2.5: %.2f\n", ppm / DIAS);
+    }
+}
+
+void prediccion(Zona zonas[]) {
+    float factor;
+
+    for (int i = 0; i < ZONAS; i++) {
+        factor = 1.0;
+
+        if (zonas[i].viento < 4)
+            factor += 0.1;
+        if (zonas[i].humedad > 70)
+            factor += 0.05;
+
+        printf("\nPrediccion 24h - %s", zonas[i].nombre);
+        printf("\nCO2: %.2f", zonas[i].co2[DIAS - 1] * factor);
+        printf("\nSO2: %.2f", zonas[i].so2[DIAS - 1] * factor);
+        printf("\nNO2: %.2f", zonas[i].no2[DIAS - 1] * factor);
+        printf("\nPM2.5: %.2f\n", zonas[i].pm25[DIAS - 1] * factor);
+    }
+}
+
+void alertas(Zona zonas[]) {
+    for (int i = 0; i < ZONAS; i++) {
+        printf("\nAlertas - %s", zonas[i].nombre);
+
+        if (zonas[i].co2[DIAS - 1] > LIM_CO2)
+            printf("\nCO2 sobre el limite");
+        if (zonas[i].so2[DIAS - 1] > LIM_SO2)
+            printf("\nSO2 sobre el limite");
+        if (zonas[i].no2[DIAS - 1] > LIM_NO2)
+            printf("\nNO2 sobre el limite");
+        if (zonas[i].pm25[DIAS - 1] > LIM_PM25)
+            printf("\nPM2.5 sobre el limite");
+
+        printf("\n");
+    }
+}
+
+void recomendaciones(Zona zonas[]) {
+    for (int i = 0; i < ZONAS; i++) {
+        printf("\nRecomendaciones - %s", zonas[i].nombre);
+
+        if (zonas[i].pm25[DIAS - 1] > LIM_PM25)
+            printf("\nSuspender actividades al aire libre");
+        else
+            printf("\nCondiciones ambientales aceptables");
+
+        printf("\n");
+    }
+}
+
+void generarReporte(Zona zonas[]) {
+    FILE *f = fopen("reporte_contaminacion_quito.txt", "w");
+
+    if (f == NULL) {
+        printf("Error al crear el archivo\n");
+        return;
+    }
+
+    for (int i = 0; i < ZONAS; i++) {
+        fprintf(f, "%s\n", zonas[i].nombre);
+        fprintf(f, "CO2: %.2f ppm\n", zonas[i].co2[DIAS - 1]);
+        fprintf(f, "SO2: %.2f ug/m3\n", zonas[i].so2[DIAS - 1]);
+        fprintf(f, "NO2: %.2f ug/m3\n", zonas[i].no2[DIAS - 1]);
+        fprintf(f, "PM2.5: %.2f ug/m3\n\n", zonas[i].pm25[DIAS - 1]);
+    }
+
+    fclose(f);
+    printf("\nReporte generado correctamente\n");
+}
